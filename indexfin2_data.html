@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FINV2AXMP CSV Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #111;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      z-index: 9999;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+    }
+
+    .button {
+      margin: 5px;
+      padding: 10px 16px;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #005bb5;
+    }
+
+    #mainContent {
+      padding: 100px 10px 40px;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.9em;
+    }
+
+    th {
+      background: #eee;
+      cursor: pointer;
+    }
+
+    #filterInput {
+      margin: 10px 0;
+      width: 100%;
+      padding: 0.5em;
+      font-size: 1em;
+    }
+
+    #pagination button {
+      margin: 3px;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <a href="full_svg.html">
+      <button class="button">← Back to Full SVG 🖼️</button>
+    </a>
+  </div>
+
+  <div id="mainContent">
+    <h2>FINV2AXMP Database Viewer</h2>
+    <input type="file" id="csvFile" accept=".csv" />
+    <input type="text" id="filterInput" placeholder="🔍 Type to filter rows..." />
+    <div id="pagination"></div>
+    <table id="dataTable"></table>
+  </div>
+
+  <script>
+    let tableData = [];
+    let currentPage = 1;
+    const rowsPerPage = 200;
+
+    // Auto-load CSV from same directory
+    fetch("finv2_data.csv")
+      .then(response => response.text())
+      .then(csvText => {
+        const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        tableData = results.data;
+        renderTable(tableData);
+      });
+
+    // Optional manual file input
+    document.getElementById("csvFile").addEventListener("change", function (e) {
+      Papa.parse(e.target.files[0], {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          tableData = results.data;
+          currentPage = 1;
+          renderTable(tableData);
+        }
+      });
+    });
+
+    function renderTable(data) {
+      const table = document.getElementById("dataTable");
+      table.innerHTML = "";
+
+      if (data.length === 0) return;
+
+      const headers = Object.keys(data[0]);
+      const thead = table.insertRow();
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        th.onclick = () => sortBy(header);
+        thead.appendChild(th);
+      });
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const paginatedData = data.slice(start, start + rowsPerPage);
+
+      paginatedData.forEach(row => {
+        const tr = table.insertRow();
+        headers.forEach(header => {
+          const td = tr.insertCell();
+          td.textContent = row[header];
+        });
+      });
+
+      renderPagination(data.length);
+    }
+
+    function renderPagination(totalRows) {
+      const totalPages = Math.ceil(totalRows / rowsPerPage);
+      const nav = document.getElementById("pagination");
+      nav.innerHTML = "";
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.onclick = () => {
+          currentPage = i;
+          renderTable(tableData);
+        };
+        nav.appendChild(btn);
+      }
+    }
+
+    function sortBy(column) {
+      const sorted = [...tableData].sort((a, b) => {
+        const valA = a[column], valB = b[column];
+        return valA > valB ? 1 : valA < valB ? -1 : 0;
+      });
+      renderTable(sorted);
+    }
+
+    document.getElementById("filterInput").addEventListener("input", function () {
+      const term = this.value.toLowerCase();
+      const filtered = tableData.filter(row =>
+        Object.values(row).some(val => String(val).toLowerCase().includes(term))
+      );
+      currentPage = 1;
+      renderTable(filtered);
+    });
+  </script>
+</body>
+</html>
