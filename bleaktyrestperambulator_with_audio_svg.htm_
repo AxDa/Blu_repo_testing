@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
+  <title>bleaktyrestperambulator_2351_2352_utc+1_22052025_v0.2_axda.mp3 Audio Playback</title>
+  <style>
+    iframe {
+      width: 100%;
+      height: 80vh;
+      border: none;
+      touch-action: auto;
+      zoom: 1;
+      transform-origin: 0 0;
+    }
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎧 bleaktyrestperambulator Audio Viewer</h2>
+  <iframe src="bleaktyrestperambulator.svg"></iframe>
+
+  <audio controls>
+    <source src="bleaktyrestperambulator.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+</body>
+</html>
